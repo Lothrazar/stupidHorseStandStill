@@ -1,83 +1,113 @@
 package com.lothrazar.horsestandstill;
 
-import java.util.stream.Collectors;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.passive.AbstractHorse;
+import net.minecraft.item.ItemLead;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.fml.InterModComms;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.fml.common.Mod.EventHandler;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-// The value here should match an entry in the META-INF/mods.toml file
-@Mod("horsestandstill")
-public class ExampleMod
-{
-    // Directly reference a log4j logger.
-    private static final Logger LOGGER = LogManager.getLogger();
+@Mod(modid = ExampleMod.MODID)
+public class ExampleMod {
 
-    public ExampleMod() {
-        // Register the setup method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-        // Register the enqueueIMC method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
-        // Register the processIMC method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
-        // Register the doClientStuff method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
+  private static final int DISTANCE = 3;
+  public static final String MODID = "examplemod";
+  private static final String NBT_TRACKED = MODID + ":tracked";
+  private static final String NBT_TRACKEDX = MODID + ":trackedx";
+  private static final String NBT_TRACKEDY = MODID + ":trackedy";
+  private static final String NBT_TRACKEDZ = MODID + ":trackedz";
+  private static Logger logger;
 
-        // Register ourselves for server and other game events we are interested in
-        MinecraftForge.EVENT_BUS.register(this);
-    }
+  @EventHandler
+  public void preInit(FMLPreInitializationEvent event) {
+    logger = event.getModLog();
+    MinecraftForge.EVENT_BUS.register(this);
+  }
 
-    private void setup(final FMLCommonSetupEvent event)
-    {
-        // some preinit code
-        LOGGER.info("HELLO FROM PREINIT");
-        LOGGER.info("DIRT BLOCK >> {}", Blocks.DIRT.getRegistryName());
-    }
+  @EventHandler
+  public void init(FMLInitializationEvent event) {}
 
-    private void doClientStuff(final FMLClientSetupEvent event) {
-        // do something that can only be done on the client
-        LOGGER.info("Got game settings {}", event.getMinecraftSupplier().get().gameSettings);
-    }
+  @SubscribeEvent
+  public void onHit(LivingEvent.LivingUpdateEvent event) {
+    EntityLivingBase horse = event.getEntityLiving();
+    //    ItemStack held = player.getHeldItem(event.getHand());
+    if (horse instanceof AbstractHorse) {
+      //find my horse 
+      ItemLead lead;
+      //am i ridden by player
+      if (horse.canPassengerSteer()) {
+        logger.info("player is here null me out");
+        
+        if( !horse.getEntityData().getBoolean(NBT_TRACKED)) {
 
-    private void enqueueIMC(final InterModEnqueueEvent event)
-    {
-        // some example code to dispatch IMC to another mod
-        InterModComms.sendTo("examplemod", "helloworld", () -> { LOGGER.info("Hello world from the MDK"); return "Hello world";});
-    }
-
-    private void processIMC(final InterModProcessEvent event)
-    {
-        // some example code to receive and process InterModComms from other mods
-        LOGGER.info("Got IMC {}", event.getIMCStream().
-                map(m->m.getMessageSupplier().get()).
-                collect(Collectors.toList()));
-    }
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
-    @SubscribeEvent
-    public void onServerStarting(FMLServerStartingEvent event) {
-        // do something when the server starts
-        LOGGER.info("HELLO from server starting");
-    }
-
-    // You can use EventBusSubscriber to automatically subscribe events on the contained class (this is subscribing to the MOD
-    // Event bus for receiving Registry Events)
-    @Mod.EventBusSubscriber(bus=Mod.EventBusSubscriber.Bus.MOD)
-    public static class RegistryEvents {
-        @SubscribeEvent
-        public static void onBlocksRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
-            // register a new block here
-            LOGGER.info("HELLO from Register Block");
+          logger.info("untracked horse started to ride");
+          horse.getEntityData().setBoolean(NBT_TRACKED, true);
+          horse.getEntityData().removeTag(NBT_TRACKEDX);
+          horse.getEntityData().removeTag(NBT_TRACKEDY);
+          horse.getEntityData().removeTag(NBT_TRACKEDZ);
         }
+       }
+      else {
+
+        if( horse.getEntityData().getBoolean(NBT_TRACKED)) {
+          logger.info("a tracked horse has no passenger now. so reset to not tracked");
+          horse.getEntityData().setBoolean(NBT_TRACKED, false);
+             
+        }
+        
+      }
+//      int x = horse.getEntityData().getInteger(NBT_TRACKEDX);
+//      int y = horse.getEntityData().getInteger(NBT_TRACKEDY);
+//      int z = horse.getEntityData().getInteger(NBT_TRACKEDZ);
+//      BlockPos pos = new BlockPos(x, y, z);
+//      if (UtilWorld.distanceBetweenHorizontal(pos, horse.getPosition()) > DISTANCE) {
+//        //so here we go
+//        horse.setPosition(x, y, z);
+//        horse.playSound(SoundEvents.ENTITY_ENDERMEN_TELEPORT, 1, 1);
+//        logger.info("warped horse ");
+//      }
     }
+  }
+//
+//  @SubscribeEvent
+//  public void onEntity(PlayerInteractEvent.EntityInteract event) {
+//    EntityPlayer player = event.getEntityPlayer();
+//    ItemStack held = player.getHeldItem(event.getHand());
+//    if (held.getItem() == Items.APPLE && event.getEntity() instanceof AbstractHorse) {
+//      //
+//      
+//      //find my horse 
+//      AbstractHorse horse = (AbstractHorse) event.getEntity();
+//      BlockPos pos = horse.getPosition();
+//      horse.getEntityData().setBoolean(NBT_TRACKED, true);
+//      horse.getEntityData().setInteger(NBT_TRACKEDX, pos.getX());
+//      horse.getEntityData().setInteger(NBT_TRACKEDY, pos.getY());
+//      horse.getEntityData().setInteger(NBT_TRACKEDZ, pos.getZ());
+//      held.shrink(1);
+//      //and then 
+//    }
+//    else
+//      if (held.isEmpty() && event.getEntity() instanceof AbstractHorse) {
+//        //find my horse 
+//        AbstractHorse horse = (AbstractHorse) event.getEntity();
+//        if (horse.getEntityData().getBoolean(NBT_TRACKED)) {}
+//      }
+//    //      //did we turn it off? is the visible timer still going?
+//    //      if (ActionType.getTimeout(held) > 0) {
+//    //        return;
+//    //      }
+//    //      ActionType.setTimeout(held);
+//    //      event.setCanceled(true);
+//    //      UtilSound.playSound(player, player.getPosition(), SoundRegistry.tool_mode, SoundCategory.PLAYERS, 0.1F);
+//    //      if (!player.getEntityWorld().isRemote) { // server side
+//    //        ActionType.toggle(held);
+//    //        UtilChat.sendStatusMessage(player, UtilChat.lang(ActionType.getName(held)));
+//    //      }
+//    //    }
+//  }
 }
