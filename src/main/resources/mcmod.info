@@ -1,8 +1,8 @@
 [
 {
-  "modid": "examplemod",
-  "name": "Example Mod",
-  "description": "Example placeholder mod.",
+  "modid": "horsestandstill",
+  "name": "horsestandstill Mod",
+  "description": "Stupid horsestandstillmod.",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",
