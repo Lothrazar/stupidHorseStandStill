@@ -1,13 +1,13 @@
 package com.lothrazar.horsestandstill;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.passive.AbstractHorse;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.SoundEvents;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.passive.horse.HorseEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EventHorseStandStill {
 
@@ -21,15 +21,15 @@ public class EventHorseStandStill {
 
   @SubscribeEvent
   public void onHit(LivingEvent.LivingUpdateEvent event) {
-    EntityLivingBase entity = event.getEntityLiving();
-    if (entity instanceof AbstractHorse == false) {
+    LivingEntity entity = event.getEntityLiving();
+    if (entity instanceof HorseEntity == false) {
       return;
     }
     //find my horse 
-    AbstractHorse horse = (AbstractHorse) entity;
-    boolean emptyState = !horse.getEntityData().hasKey(NBT_RIDING);
-    boolean ridingState = STATE_RIDING.equals(horse.getEntityData().getString(NBT_RIDING));
-    boolean isWaitingState = STATE_WAITING.equals(horse.getEntityData().getString(NBT_RIDING));
+    HorseEntity horse = (HorseEntity) entity;
+    boolean emptyState = !horse.getPersistentData().contains(NBT_RIDING);
+    boolean ridingState = STATE_RIDING.equals(horse.getPersistentData().getString(NBT_RIDING));
+    boolean isWaitingState = STATE_WAITING.equals(horse.getPersistentData().getString(NBT_RIDING));
     boolean isPlayerRiding = this.isRiddenByPlayer(horse);
     boolean isSaddled = horse.isHorseSaddled();
     if (emptyState) {
@@ -60,7 +60,7 @@ public class EventHorseStandStill {
         if (isSaddled) {
           //          ModHorseStandStill.logger.info("saddled but no player, riding -> waiting");
           horse.spawnExplosionParticle();
-          horse.attackEntityFrom(DamageSource.MAGIC, 0F); 
+          horse.attackEntityFrom(DamageSource.MAGIC, 0F);
           if (entity.world.isRemote) {
             return;//no client side data or tracking needed 
           }
@@ -82,7 +82,7 @@ public class EventHorseStandStill {
         return;//no client side data or tracking needed 
       }
       //ModHorseStandStill.logger.info("CURRENT = waiting");
-      if (isSaddled && horse.isEntityAlive()) {
+      if (isSaddled && horse.isAlive()) {
         // still WAITING, ok do my thing
         //wait did a player jump on my back just now 
         if (isPlayerRiding) {
@@ -110,19 +110,19 @@ public class EventHorseStandStill {
     //      }
   }
 
-  private boolean isRiddenByPlayer(AbstractHorse horse) {
-    return horse.getControllingPassenger() instanceof EntityPlayer;
+  private boolean isRiddenByPlayer(HorseEntity horse) {
+    return horse.getControllingPassenger() instanceof PlayerEntity;
   }
 
-  private void onWaitingStateTick(AbstractHorse horse) {
+  private void onWaitingStateTick(HorseEntity horse) {
     horse.spawnRunningParticles();
     //          horse.setNoAI(true);
     //          horse.spawnExplosionParticle();
     //player not riding AND its tagged with NBT_RIDING false 
     //
-    int x = horse.getEntityData().getInteger(NBT_TRACKEDX);
-    int y = horse.getEntityData().getInteger(NBT_TRACKEDY);
-    int z = horse.getEntityData().getInteger(NBT_TRACKEDZ);
+    int x = horse.getPersistentData().getInt(NBT_TRACKEDX);
+    int y = horse.getPersistentData().getInt(NBT_TRACKEDY);
+    int z = horse.getPersistentData().getInt(NBT_TRACKEDZ);
     // ok am i too far away
     BlockPos pos = new BlockPos(x, y, z);
     double distance = UtilWorld.distanceBetweenHorizontal(pos, horse.getPosition());
@@ -130,35 +130,35 @@ public class EventHorseStandStill {
       //so here we go
       //      ModHorseStandStill.logger.info(horse.world.isRemote + " warped horse since distance was = " + distance);
       //      horse.setPosition(x, y, z);
-      horse.playSound(SoundEvents.ENTITY_ENDERMEN_TELEPORT, 1, 1);
+      horse.playSound(SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1, 1);
     }
   }
 
-  private void clearState(AbstractHorse horse) {
+  private void clearState(HorseEntity horse) {
     //clear all data
     //            horse.setNoAI(false);
-    horse.getEntityData().removeTag(NBT_RIDING);
-    horse.getEntityData().removeTag(NBT_TRACKEDX);
-    horse.getEntityData().removeTag(NBT_TRACKEDY);
-    horse.getEntityData().removeTag(NBT_TRACKEDZ);
+    horse.getPersistentData().remove(NBT_RIDING);
+    horse.getPersistentData().remove(NBT_TRACKEDX);
+    horse.getPersistentData().remove(NBT_TRACKEDY);
+    horse.getPersistentData().remove(NBT_TRACKEDZ);
   }
 
-  private void setWaitingStateAndPos(AbstractHorse horse) {
-    horse.getEntityData().setString(NBT_RIDING, STATE_WAITING);
+  private void setWaitingStateAndPos(HorseEntity horse) {
+    horse.getPersistentData().putString(NBT_RIDING, STATE_WAITING);
     //    UtilWorld.sendStatusMessage(horse.getEntityWorld(), horse.getName() + " is waiting for a rider to return");
     //          horse.setNoAI(true);
     //                AbstractHorse horsee = (AbstractHorse) event.getEntity();
     BlockPos pos = horse.getPosition();
-    horse.getEntityData().setInteger(NBT_TRACKEDX, pos.getX());
-    horse.getEntityData().setInteger(NBT_TRACKEDY, pos.getY());
-    horse.getEntityData().setInteger(NBT_TRACKEDZ, pos.getZ());
+    horse.getPersistentData().putInt(NBT_TRACKEDX, pos.getX());
+    horse.getPersistentData().putInt(NBT_TRACKEDY, pos.getY());
+    horse.getPersistentData().putInt(NBT_TRACKEDZ, pos.getZ());
   }
 
-  private void setRidingState(AbstractHorse horse) {
+  private void setRidingState(HorseEntity horse) {
     //          horse.setNoAI(true);
-    horse.getEntityData().setString(NBT_RIDING, STATE_RIDING);
-    horse.getEntityData().removeTag(NBT_TRACKEDX);
-    horse.getEntityData().removeTag(NBT_TRACKEDY);
-    horse.getEntityData().removeTag(NBT_TRACKEDZ);
+    horse.getPersistentData().putString(NBT_RIDING, STATE_RIDING);
+    horse.getPersistentData().remove(NBT_TRACKEDX);
+    horse.getPersistentData().remove(NBT_TRACKEDY);
+    horse.getPersistentData().remove(NBT_TRACKEDZ);
   }
 }
