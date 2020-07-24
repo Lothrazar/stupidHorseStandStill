@@ -4,7 +4,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.passive.horse.HorseEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -125,10 +125,10 @@ public class EventHorseStandStill {
 
   private void setWaitingStateAndPos(HorseEntity horse) {
     horse.getPersistentData().putString(NBT_RIDING, STATE_WAITING);
-    BlockPos pos = horse.getPosition();
-    horse.getPersistentData().putInt(NBT_TRACKEDX, pos.getX());
-    horse.getPersistentData().putInt(NBT_TRACKEDY, pos.getY());
-    horse.getPersistentData().putInt(NBT_TRACKEDZ, pos.getZ());
+    Vector3d pos = horse.getPositionVec();
+    horse.getPersistentData().putInt(NBT_TRACKEDX, (int) pos.getX());
+    horse.getPersistentData().putInt(NBT_TRACKEDY, (int) pos.getY());
+    horse.getPersistentData().putInt(NBT_TRACKEDZ, (int) pos.getZ());
   }
 
   private void setRidingState(HorseEntity horse) {
