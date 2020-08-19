@@ -10,6 +10,4 @@ public class UtilWorld {
     // ye olde pythagoras
     return Math.sqrt(xDistance * xDistance + zDistance * zDistance);
   }
- 
- 
 }
