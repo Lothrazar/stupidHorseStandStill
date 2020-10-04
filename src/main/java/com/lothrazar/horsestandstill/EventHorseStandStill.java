@@ -10,7 +10,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EventHorseStandStill {
 
-  //  private static final int DISTANCE = 6;
   private static final String STATE_WAITING = ModHorseStandStill.MODID + ".waiting";
   private static final String STATE_RIDING = ModHorseStandStill.MODID + ".riding";
   private static final String NBT_RIDING = ModHorseStandStill.MODID + ".tracked";
@@ -102,18 +101,6 @@ public class EventHorseStandStill {
 
   private void onWaitingStateTick(HorseEntity horse) {
     horse.setNoAI(true);//the only place we use true 
-    //    horse.spawnRunningParticles();
-    //    int x = horse.getPersistentData().getInt(NBT_TRACKEDX);
-    //    int y = horse.getPersistentData().getInt(NBT_TRACKEDY);
-    //    int z = horse.getPersistentData().getInt(NBT_TRACKEDZ);
-    //    // ok am i too far away
-    //    BlockPos pos = new BlockPos(x, y, z);
-    //    double distance = UtilWorld.distanceBetweenHorizontal(pos, horse.getPosition());
-    //    if (distance > DISTANCE) {
-    //      //so here we go 
-    //      //      horse.setPosition(x, y, z);
-    //      horse.playSound(SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-    //    }
   }
 
   private void clearState(HorseEntity horse) {
