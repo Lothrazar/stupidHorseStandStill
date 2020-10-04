@@ -10,12 +10,12 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EventHorseStandStill {
 
-  private static final String STATE_WAITING = ModHorseStandStill.MODID + ".waiting";
-  private static final String STATE_RIDING = ModHorseStandStill.MODID + ".riding";
-  private static final String NBT_RIDING = ModHorseStandStill.MODID + ".tracked";
   private static final String NBT_TRACKEDX = ModHorseStandStill.MODID + ".trackedx";
   private static final String NBT_TRACKEDY = ModHorseStandStill.MODID + ".trackedy";
   private static final String NBT_TRACKEDZ = ModHorseStandStill.MODID + ".trackedz";
+  private static final String STATE_WAITING = ModHorseStandStill.MODID + ".waiting";
+  private static final String STATE_RIDING = ModHorseStandStill.MODID + ".riding";
+  private static final String NBT_RIDING = ModHorseStandStill.MODID + ".tracked";
 
   @SubscribeEvent
   public void onHit(LivingEvent.LivingUpdateEvent event) {
@@ -28,7 +28,7 @@ public class EventHorseStandStill {
     boolean emptyState = !horse.getPersistentData().contains(NBT_RIDING);
     boolean ridingState = STATE_RIDING.equals(horse.getPersistentData().getString(NBT_RIDING));
     boolean isWaitingState = STATE_WAITING.equals(horse.getPersistentData().getString(NBT_RIDING));
-    boolean isPlayerRiding = this.isRiddenByPlayer(horse);
+    boolean isPlayerRiding = isRiddenByPlayer(horse);
     boolean isSaddled = horse.isHorseSaddled();
     if (emptyState) {
       if (entity.world.isRemote) {
@@ -42,7 +42,7 @@ public class EventHorseStandStill {
         horse.setNoAI(false);
       }
     }
-    else if (ridingState) {
+    else if (ridingState) {////////////// riding
       if (entity.world.isRemote) {
         return;//no client side data or tracking needed 
       }
@@ -70,7 +70,7 @@ public class EventHorseStandStill {
       }
       //still riding i guess 
     }
-    else if (isWaitingState) {
+    else if (isWaitingState) {////////////// waiting
       if (entity.world.isRemote) {
         return;//no client side data or tracking needed 
       }
@@ -95,22 +95,22 @@ public class EventHorseStandStill {
     }
   }
 
-  private boolean isRiddenByPlayer(HorseEntity horse) {
+  private static boolean isRiddenByPlayer(HorseEntity horse) {
     return horse.getControllingPassenger() instanceof PlayerEntity;
   }
 
-  private void onWaitingStateTick(HorseEntity horse) {
+  private static void onWaitingStateTick(HorseEntity horse) {
     horse.setNoAI(true);//the only place we use true 
   }
 
-  private void clearState(HorseEntity horse) {
+  private static void clearState(HorseEntity horse) {
     horse.getPersistentData().remove(NBT_RIDING);
     horse.getPersistentData().remove(NBT_TRACKEDX);
     horse.getPersistentData().remove(NBT_TRACKEDY);
     horse.getPersistentData().remove(NBT_TRACKEDZ);
   }
 
-  private void setWaitingStateAndPos(HorseEntity horse) {
+  private static void setWaitingStateAndPos(HorseEntity horse) {
     horse.getPersistentData().putString(NBT_RIDING, STATE_WAITING);
     Vector3d pos = horse.getPositionVec();
     horse.getPersistentData().putInt(NBT_TRACKEDX, (int) pos.getX());
@@ -118,7 +118,7 @@ public class EventHorseStandStill {
     horse.getPersistentData().putInt(NBT_TRACKEDZ, (int) pos.getZ());
   }
 
-  private void setRidingState(HorseEntity horse) {
+  private static void setRidingState(HorseEntity horse) {
     horse.getPersistentData().putString(NBT_RIDING, STATE_RIDING);
     horse.getPersistentData().remove(NBT_TRACKEDX);
     horse.getPersistentData().remove(NBT_TRACKEDY);
