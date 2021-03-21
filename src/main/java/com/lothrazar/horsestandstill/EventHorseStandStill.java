@@ -82,7 +82,7 @@ public class EventHorseStandStill {
         return;//no client side data or tracking needed 
       }
       //ModHorseStandStill.logger.info("CURRENT = waiting");
-      if (isSaddled && horse.isEntityAlive()) {
+      if (isSaddled && horse.isEntityAlive() && !horse.isInWater()) {
         // still WAITING, ok do my thing
         //wait did a player jump on my back just now 
         if (isPlayerRiding) {
