@@ -36,10 +36,8 @@ public class EventHorseStandStill {
       if (entity.world.isRemote) {
         return;//no client side data or tracking needed 
       }
-      //      ModHorseStandStill.logger.info("CURRENT = empty");
       if (isPlayerRiding) {
-        //from no state to RIDING.  
-        //        ModHorseStandStill.logger.info("no state to riding");
+        //from no state to RIDING.   
         setRidingState(horse);
       }
       else {
@@ -50,7 +48,6 @@ public class EventHorseStandStill {
       if (entity.world.isRemote) {
         return;//no client side data or tracking needed 
       }
-      //ModHorseStandStill.logger.info("CURRENT = riding");
       //player is riding
       //did it get off
       if (isPlayerRiding == false) {
@@ -60,7 +57,7 @@ public class EventHorseStandStill {
         if (isSaddled) {
           //          ModHorseStandStill.logger.info("saddled but no player, riding -> waiting");
           horse.spawnExplosionParticle();
-          horse.attackEntityFrom(DamageSource.MAGIC, 0F); 
+          horse.attackEntityFrom(DamageSource.MAGIC, 0F);
           if (entity.world.isRemote) {
             return;//no client side data or tracking needed 
           }
@@ -81,33 +78,26 @@ public class EventHorseStandStill {
       if (entity.world.isRemote) {
         return;//no client side data or tracking needed 
       }
-      //ModHorseStandStill.logger.info("CURRENT = waiting");
       if (isSaddled && horse.isEntityAlive() && !horse.isInWater()) {
         // still WAITING, ok do my thing
         //wait did a player jump on my back just now 
         if (isPlayerRiding) {
-          //waiting to riding 
-          //          ModHorseStandStill.logger.info("waiting to riding");
+          //waiting to riding  
           setRidingState(horse);
         }
         else {
-          //stay waiting
-          //          ModHorseStandStill.logger.info("waiting TICK");
+          //stay waiting 
           onWaitingStateTick(horse);
           horse.setNoAI(true);//the only place we use true 
         }
       }
       else {
-        // ModHorseStandStill.logger.info("Clear state");
         //dead or not saddled, player must have removed, just clear me
         //set to no state
         clearState(horse);
         horse.setNoAI(false);
       }
     }
-    //      else {
-    //    
-    //      }
   }
 
   private boolean isRiddenByPlayer(AbstractHorse horse) {
@@ -116,8 +106,6 @@ public class EventHorseStandStill {
 
   private void onWaitingStateTick(AbstractHorse horse) {
     horse.spawnRunningParticles();
-    //          horse.setNoAI(true);
-    //          horse.spawnExplosionParticle();
     //player not riding AND its tagged with NBT_RIDING false 
     //
     int x = horse.getEntityData().getInteger(NBT_TRACKEDX);
@@ -127,16 +115,13 @@ public class EventHorseStandStill {
     BlockPos pos = new BlockPos(x, y, z);
     double distance = UtilWorld.distanceBetweenHorizontal(pos, horse.getPosition());
     if (distance > DISTANCE) {
-      //so here we go
-      //      ModHorseStandStill.logger.info(horse.world.isRemote + " warped horse since distance was = " + distance);
-      //      horse.setPosition(x, y, z);
+      //so here we go 
       horse.playSound(SoundEvents.ENTITY_ENDERMEN_TELEPORT, 1, 1);
     }
   }
 
   private void clearState(AbstractHorse horse) {
-    //clear all data
-    //            horse.setNoAI(false);
+    //clear all data 
     horse.getEntityData().removeTag(NBT_RIDING);
     horse.getEntityData().removeTag(NBT_TRACKEDX);
     horse.getEntityData().removeTag(NBT_TRACKEDY);
@@ -145,9 +130,6 @@ public class EventHorseStandStill {
 
   private void setWaitingStateAndPos(AbstractHorse horse) {
     horse.getEntityData().setString(NBT_RIDING, STATE_WAITING);
-    //    UtilWorld.sendStatusMessage(horse.getEntityWorld(), horse.getName() + " is waiting for a rider to return");
-    //          horse.setNoAI(true);
-    //                AbstractHorse horsee = (AbstractHorse) event.getEntity();
     BlockPos pos = horse.getPosition();
     horse.getEntityData().setInteger(NBT_TRACKEDX, pos.getX());
     horse.getEntityData().setInteger(NBT_TRACKEDY, pos.getY());
@@ -155,7 +137,6 @@ public class EventHorseStandStill {
   }
 
   private void setRidingState(AbstractHorse horse) {
-    //          horse.setNoAI(true);
     horse.getEntityData().setString(NBT_RIDING, STATE_RIDING);
     horse.getEntityData().removeTag(NBT_TRACKEDX);
     horse.getEntityData().removeTag(NBT_TRACKEDY);
