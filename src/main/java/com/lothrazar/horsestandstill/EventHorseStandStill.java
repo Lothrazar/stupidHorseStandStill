@@ -1,13 +1,13 @@
 package com.lothrazar.horsestandstill;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.passive.horse.AbstractChestedHorseEntity;
-import net.minecraft.entity.passive.horse.AbstractHorseEntity;
-import net.minecraft.entity.passive.horse.DonkeyEntity;
-import net.minecraft.entity.passive.horse.MuleEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.horse.AbstractChestedHorse;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.animal.horse.Donkey;
+import net.minecraft.world.entity.animal.horse.Mule;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -23,10 +23,10 @@ public class EventHorseStandStill {
   private boolean isValid(LivingEntity entity) {
     //some overly un necessary checks here, like mule and donkey already extend from abstract horse. pig does not but can be saddled and ridden in a custom way
     //    entity instanceof PigEntity ||
-    if (entity instanceof AbstractHorseEntity ||
-        entity instanceof AbstractChestedHorseEntity ||
-        entity instanceof MuleEntity ||
-        entity instanceof DonkeyEntity) {
+    if (entity instanceof AbstractHorse ||
+        entity instanceof AbstractChestedHorse ||
+        entity instanceof Mule ||
+        entity instanceof Donkey) {
       return true;
     }
     return false;
@@ -38,14 +38,14 @@ public class EventHorseStandStill {
     if (isValid(living) == false) {
       return;
     }
-    AbstractHorseEntity horse = (AbstractHorseEntity) living;
+    AbstractHorse horse = (AbstractHorse) living;
     //find my horse  
     boolean emptyState = !horse.getPersistentData().contains(NBT_RIDING);
     boolean ridingState = STATE_RIDING.equals(horse.getPersistentData().getString(NBT_RIDING));
     boolean isWaitingState = STATE_WAITING.equals(horse.getPersistentData().getString(NBT_RIDING));
     boolean isPlayerRiding = isRiddenByPlayer(horse);
     if (emptyState) {
-      if (horse.world.isRemote) {
+      if (horse.level.isClientSide) {
         return;//no client side data or tracking needed 
       }
       if (isPlayerRiding) {
@@ -53,11 +53,11 @@ public class EventHorseStandStill {
         setRidingState(horse);
       }
       else {
-        horse.setNoAI(false);
+        horse.setNoAi(false);
       }
     }
     else if (ridingState) { ////////////// riding
-      if (horse.world.isRemote) {
+      if (horse.level.isClientSide) {
         return;
       }
       //player is riding
@@ -66,29 +66,29 @@ public class EventHorseStandStill {
         // still saddled, player has gotten off though 
         //but im in riding state
         //so move to waiting 
-        if (horse.isHorseSaddled()) {
-          horse.spawnExplosionParticle();
-          horse.attackEntityFrom(DamageSource.MAGIC, 0F);
-          if (horse.world.isRemote) {
+        if (horse.isSaddled()) {
+          horse.spawnAnim();
+          horse.hurt(DamageSource.MAGIC, 0F);
+          if (horse.level.isClientSide) {
             return;
           }
           setWaitingStateAndPos(horse);
         }
         else {
-          if (living.world.isRemote) {
+          if (living.level.isClientSide) {
             return; //no client side data or tracking needed 
           }
           clearState(horse);
-          horse.setNoAI(false);
+          horse.setNoAi(false);
         }
       }
       //still riding i guess 
     }
     else if (isWaitingState) { ////////////// waiting
-      if (horse.world.isRemote) {
+      if (horse.level.isClientSide) {
         return;
       }
-      if (horse.isHorseSaddled() && horse.isAlive() && !horse.isInWater() && !horse.isSwimming()) {
+      if (horse.isSaddled() && horse.isAlive() && !horse.isInWater() && !horse.isSwimming()) {
         //wait did a player jump on my back just now 
         if (isPlayerRiding) {
           //waiting to riding  
@@ -96,20 +96,20 @@ public class EventHorseStandStill {
         }
         else {
           //stay waiting  
-          horse.setNoAI(true); //the only place we use true 
+          horse.setNoAi(true); //the only place we use true 
         }
       }
       else {
         //dead or not saddled, player must have removed, just clear me
         //set to no state
         clearState(horse);
-        horse.setNoAI(false);
+        horse.setNoAi(false);
       }
     }
   }
 
   private static boolean isRiddenByPlayer(LivingEntity horse) {
-    return horse.getControllingPassenger() instanceof PlayerEntity;
+    return horse.getControllingPassenger() instanceof Player;
   }
 
   private static void clearState(LivingEntity horse) {
@@ -121,10 +121,10 @@ public class EventHorseStandStill {
 
   private static void setWaitingStateAndPos(LivingEntity horse) {
     horse.getPersistentData().putString(NBT_RIDING, STATE_WAITING);
-    Vector3d pos = horse.getPositionVec();
-    horse.getPersistentData().putInt(NBT_TRACKEDX, (int) pos.getX());
-    horse.getPersistentData().putInt(NBT_TRACKEDY, (int) pos.getY());
-    horse.getPersistentData().putInt(NBT_TRACKEDZ, (int) pos.getZ());
+    Vec3 pos = horse.position();
+    horse.getPersistentData().putInt(NBT_TRACKEDX, (int) pos.x());
+    horse.getPersistentData().putInt(NBT_TRACKEDY, (int) pos.y());
+    horse.getPersistentData().putInt(NBT_TRACKEDZ, (int) pos.z());
   }
 
   private static void setRidingState(LivingEntity horse) {
