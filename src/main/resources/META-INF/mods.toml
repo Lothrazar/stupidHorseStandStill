@@ -21,7 +21,7 @@ version="${file.jarVersion}" #mandatory
  # A display name for the mod
 displayName="Stupid Horse Stand Still" #mandatory
 # A URL to query for updates for this mod. See the JSON update specification <here>
-updateJSONURL="https://raw.githubusercontent.com/Lothrazar/stupidHorseStandStill/trunk/1.18/update.json" #optional
+updateJSONURL="https://raw.githubusercontent.com/Lothrazar/stupidHorseStandStill/trunk/1.19/update.json" #optional
 # A URL for the "homepage" for this mod, displayed in the mod UI
 displayURL="https://www.curseforge.com/minecraft/mc-mods/stupid-horse-stand-still" #optional
 # A file name (in the root of the mod JAR) containing a logo for display
@@ -41,7 +41,7 @@ Horse will wait for you when you dismount it, disabling their AI until you retur
     # Does this dependency have to exist - if not, ordering below must be specified
     mandatory=true #mandatory
     # The version range of the dependency
-    versionRange="[33,)" #mandatory
+    versionRange="[40,)" #mandatory
     # An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
     ordering="NONE"
     # Side this dependency is applied on - BOTH, CLIENT or SERVER
@@ -50,6 +50,6 @@ Horse will wait for you when you dismount it, disabling their AI until you retur
 [[dependencies.horsestandstill]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.16.2,)"
+    versionRange="[1.19,)"
     ordering="NONE"
     side="BOTH"
