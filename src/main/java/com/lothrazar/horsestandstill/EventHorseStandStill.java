@@ -1,14 +1,14 @@
 package com.lothrazar.horsestandstill;
 
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.horse.AbstractChestedHorse;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.horse.Donkey;
 import net.minecraft.world.entity.animal.horse.Mule;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.living.LivingEvent.LivingTickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EventHorseStandStill {
@@ -33,8 +33,8 @@ public class EventHorseStandStill {
   }
 
   @SubscribeEvent
-  public void onHit(LivingEvent.LivingUpdateEvent event) {
-    LivingEntity living = event.getEntityLiving();
+  public void onHit(LivingTickEvent event) {
+    LivingEntity living = event.getEntity();
     if (isValid(living) == false) {
       return;
     }
