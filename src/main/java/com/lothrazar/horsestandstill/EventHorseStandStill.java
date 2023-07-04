@@ -26,7 +26,7 @@ public class EventHorseStandStill {
       boolean ridingState = STATE_RIDING.equals(horse.getPersistentData().getString(NBT_RIDING));
       boolean isWaitingState = STATE_WAITING.equals(horse.getPersistentData().getString(NBT_RIDING));
       boolean isPlayerRiding = (horse.getControllingPassenger() instanceof Player);
-      Level level = horse.level;
+      Level level = horse.level();
       if (emptyState) {
         if (level.isClientSide) {
           return;//no client side data or tracking needed 
@@ -58,7 +58,7 @@ public class EventHorseStandStill {
             setWaitingStateAndPos(horse);
           }
           else {
-            if (living.level.isClientSide) {
+            if (living.level().isClientSide) {
               return; //no client side data or tracking needed 
             }
             clearState(horse);
