@@ -5,8 +5,8 @@ import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.entity.living.LivingEvent.LivingTickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
 
 public class EventHorseStandStill {
 
@@ -18,9 +18,9 @@ public class EventHorseStandStill {
   private static final String NBT_RIDING = ModHorseStandStill.MODID + ".tracked";
 
   @SubscribeEvent
-  public void onHit(LivingTickEvent event) {
-    LivingEntity living = event.getEntity();
+  public void onHit(EntityTickEvent.Pre event) {
     if (event.getEntity() instanceof AbstractHorse horse) {
+      LivingEntity living = horse;
       //find my horse  
       boolean emptyState = !horse.getPersistentData().contains(NBT_RIDING);
       boolean ridingState = STATE_RIDING.equals(horse.getPersistentData().getString(NBT_RIDING));
