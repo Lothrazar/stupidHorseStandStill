@@ -21,10 +21,16 @@ public class EventHorseStandStill {
   public void onHit(EntityTickEvent.Pre event) {
     if (event.getEntity() instanceof AbstractHorse horse) {
       LivingEntity living = horse;
-      //find my horse  
-      boolean emptyState = !horse.getPersistentData().contains(NBT_RIDING);
-      boolean ridingState = STATE_RIDING.equals(horse.getPersistentData().getString(NBT_RIDING));
-      boolean isWaitingState = STATE_WAITING.equals(horse.getPersistentData().getString(NBT_RIDING));
+      //find my horse
+      // CompoundTag#getString returns Optional<String> in this version, not String - comparing a
+      // String constant against that Optional was always false regardless of the stored value.
+      String ridingTag = horse.getPersistentData().getStringOr(NBT_RIDING, "");
+      boolean ridingState = STATE_RIDING.equals(ridingTag);
+      boolean isWaitingState = STATE_WAITING.equals(ridingTag);
+      // treat any unrecognized/stale NBT_RIDING value the same as "no state" so a corrupted or
+      // outdated tag (e.g. left over from an older build) self-heals instead of leaving the horse
+      // stuck in a state where none of the three branches below ever match and nothing runs.
+      boolean emptyState = !ridingState && !isWaitingState;
       boolean isPlayerRiding = (horse.getControllingPassenger() instanceof Player);
       Level level = horse.level();
       if (emptyState) {
@@ -51,10 +57,6 @@ public class EventHorseStandStill {
           //so move to waiting 
           if (horse.isSaddled()) {
             horse.spawnAnim();
-            horse.hurt(level.damageSources().magic(), 0F);
-            if (level.isClientSide()) {
-              return;
-            }
             setWaitingStateAndPos(horse);
           }
           else {
@@ -78,8 +80,8 @@ public class EventHorseStandStill {
             setRidingState(horse);
           }
           else {
-            //stay waiting  
-            horse.setNoAi(true); //the only place we use true 
+            //stay waiting
+            horse.setNoAi(true); //the only place we use true
           }
         }
         else {
@@ -99,12 +101,16 @@ public class EventHorseStandStill {
     horse.getPersistentData().remove(NBT_TRACKEDZ);
   }
 
-  private static void setWaitingStateAndPos(LivingEntity horse) {
+  private static void setWaitingStateAndPos(AbstractHorse horse) {
     horse.getPersistentData().putString(NBT_RIDING, STATE_WAITING);
     Vec3 pos = horse.position();
     horse.getPersistentData().putInt(NBT_TRACKEDX, (int) pos.x());
     horse.getPersistentData().putInt(NBT_TRACKEDY, (int) pos.y());
     horse.getPersistentData().putInt(NBT_TRACKEDZ, (int) pos.z());
+    // stop it the same tick it dismounts, instead of waiting for the isWaitingState branch
+    // to catch it next tick - and cancel any residual momentum so it halts instantly.
+    horse.setNoAi(true);
+    horse.setDeltaMovement(Vec3.ZERO);
   }
 
   private static void setRidingState(LivingEntity horse) {
